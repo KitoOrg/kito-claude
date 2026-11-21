@@ -270,5 +270,15 @@ fn it_writes_what_kito_itself_writes() {
     assert!(files.iter().all(|file| file.is_file()));
     kito(&["assistant", "remove", "claude"], false);
     assert!(files.iter().all(|file| !file.exists()));
+
+    // Disabled, it takes out what it wrote without being asked to.
+    kito(&["assistant", "add", "claude"], false);
+    assert!(files.iter().all(|file| file.is_file()));
+    let disabled = kito(&["plugin", "disable", "claude"], false);
+    assert!(
+        disabled.contains("removed CLAUDE.md") && disabled.contains("claude is disabled"),
+        "{disabled}"
+    );
+    assert!(files.iter().all(|file| !file.exists()));
     kito(&["daemon", "stop"], false);
 }

@@ -1,5 +1,5 @@
 name = "claude"
-version = "0.1.0"
+version = "0.1.1"
 description = "Claude Code set up to work through Kito"
 api = 1
 # It asks the daemon nothing: the hooks it writes are Kito's own commands,
@@ -8,3 +8,6 @@ permissions = ["read"]
 
 [assistant]
 name = "claude"
+
+[cleanup]
+about = "Takes out of the project what `kito assistant add claude` wrote"
