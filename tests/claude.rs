@@ -237,7 +237,7 @@ fn it_writes_what_kito_itself_writes() {
         false,
     );
     kito(&["plugin", "enable", "claude"], false);
-    assert!(kito(&["assistant", "list"], false).contains("claude  (plugin claude"));
+    assert!(kito(&["assistant", "list"], false).contains("plugin claude, enabled here"));
     let set_up = kito(&["assistant", "add", "claude"], false);
     assert!(
         set_up.contains("Claude Code is set up for Kito") && set_up.contains("wrote CLAUDE.md"),
