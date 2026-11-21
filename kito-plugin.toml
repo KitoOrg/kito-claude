@@ -1,0 +1,10 @@
+name = "claude"
+version = "0.1.0"
+description = "Claude Code set up to work through Kito"
+api = 1
+# It asks the daemon nothing: the hooks it writes are Kito's own commands,
+# run by Claude Code as the person who runs it.
+permissions = ["read"]
+
+[assistant]
+name = "claude"
