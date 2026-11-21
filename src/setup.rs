@@ -78,9 +78,34 @@ fn write(path: &Path, was: Option<&str>, text: &str) -> Result<Option<Done>, Str
     }))
 }
 
+/// How the part Kito writes from its instructions begins and ends
+/// (Kito 0.27): all of it is Kito's, and goes with the rules.
+const MARK: &str = "<!-- kito: begin";
+const END: &str = "<!-- kito: end -->";
+
+/// `text` without the part between Kito's marks.
+fn without_marked(text: &str) -> String {
+    let mut rest = text.to_owned();
+    while let Some(from) = rest.find(MARK) {
+        let to = match rest[from..].find(END) {
+            Some(to) => from + to + END.len(),
+            None => rest.len(),
+        };
+        rest.replace_range(from..to, "");
+    }
+    match rest.trim().is_empty() {
+        true => String::new(),
+        false => format!("{}\n", rest.trim()),
+    }
+}
+
 /// `text` without the rules: from their heading to the next heading of
-/// the same kind, or to the end.
+/// the same kind, or to the end; and without what Kito wrote between its
+/// marks.
 fn without_rules(text: &str) -> String {
+    if text.contains(MARK) {
+        return without_marked(text);
+    }
     let Some(from) = text.lines().position(|line| line.trim_end() == HEADING) else {
         return text.to_owned();
     };
@@ -324,5 +349,7 @@ mod tests {
             "## Deploying\n\nAsk first.\n"
         );
         assert_eq!(without_rules(own), own);
+        let marked = format!("{own}\n<!-- kito: begin (written by Kito) -->\n\n{RULES}\n# Style\n\nTabs.\n\n<!-- kito: end -->\n");
+        assert_eq!(without_rules(&marked), own);
     }
 }
