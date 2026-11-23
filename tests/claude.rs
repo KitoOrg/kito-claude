@@ -244,15 +244,25 @@ fn it_writes_what_kito_itself_writes() {
         "{set_up}"
     );
 
-    // Kito itself, asked to set Claude Code up, finds nothing to add: the
-    // same rules, the same server, the same permission, the same hooks.
     let files = [
         root.join("CLAUDE.md"),
         root.join(".mcp.json"),
         root.join(".claude/settings.json"),
     ];
     let by_plugin: Vec<String> = files.iter().map(|file| text(file.clone())).collect();
-    kito(&["claude"], true);
+
+    // Disabled, it takes out what it wrote without being asked to.
+    let disabled = kito(&["plugin", "disable", "claude"], false);
+    assert!(
+        disabled.contains("removed CLAUDE.md") && disabled.contains("claude is disabled"),
+        "{disabled}"
+    );
+    assert!(files.iter().all(|file| !file.exists()));
+
+    // Kito itself, asked to set Claude Code up while the plugin is not
+    // enabled, writes what the plugin wrote: the same rules, the same
+    // server, the same permission, the same hooks.
+    kito(&["assistant", "add", "claude"], true);
     let by_kito: Vec<String> = files.iter().map(|file| text(file.clone())).collect();
     assert_eq!(by_plugin[0], by_kito[0], "the rules");
     for (plugin, kito) in by_plugin.iter().zip(&by_kito).skip(1) {
@@ -263,22 +273,9 @@ fn it_writes_what_kito_itself_writes() {
     }
 
     // And what Kito wrote, the plugin takes out.
+    kito(&["plugin", "enable", "claude"], false);
     let removed = kito(&["assistant", "remove", "claude"], false);
     assert!(removed.contains("removed CLAUDE.md"), "{removed}");
-    assert!(files.iter().all(|file| !file.exists()));
-    kito(&["claude"], true);
-    assert!(files.iter().all(|file| file.is_file()));
-    kito(&["assistant", "remove", "claude"], false);
-    assert!(files.iter().all(|file| !file.exists()));
-
-    // Disabled, it takes out what it wrote without being asked to.
-    kito(&["assistant", "add", "claude"], false);
-    assert!(files.iter().all(|file| file.is_file()));
-    let disabled = kito(&["plugin", "disable", "claude"], false);
-    assert!(
-        disabled.contains("removed CLAUDE.md") && disabled.contains("claude is disabled"),
-        "{disabled}"
-    );
     assert!(files.iter().all(|file| !file.exists()));
     kito(&["daemon", "stop"], false);
 }
